@@ -43,7 +43,7 @@ public class AccountTest {
 	}
 	
 	@Test
-	public void afterAcceptingFriendRequestWhoWantsToBeFriendsUpdated() {
+	public void incomingRequestsUpdatedAfterAcceptingFriendRequest() {
 		me.requestFriendship(her);
 		her.friendshipAccepted(me);
 		assertFalse(me.getIncomingRequests().contains(her.getUserName()));
@@ -62,7 +62,7 @@ public class AccountTest {
 		assertTrue(her.hasFriend(me.getUserName()));
 		assertTrue(her.hasFriend(another.getUserName()));
 		assertTrue(another.hasFriend(her.getUserName()));
-		assertTrue(her.hasFriend(me.getUserName()));
+		assertTrue(another.hasFriend(me.getUserName()));
 	}
 	
 	@Test
