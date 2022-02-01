@@ -28,6 +28,24 @@ public class SocialNetworkTest {
 		assertNotNull(me);
 		assertEquals("Hakan", me.getUserName());
 	}
+
+	@Test 
+	public void sameUsernameCannotBeUsedTwice() {
+		Account nullMe = sn.join("Hakan");
+		assertNull(nullMe);
+	}
+
+	@Test 
+	public void nullUsernameCannotBeUsed() {
+		Account nullMe = sn.join(null);
+		assertNull(nullMe);
+	}
+
+	@Test 
+	public void emptyUsernameCannotBeUsed() {
+		Account nullMe = sn.join("");
+		assertNull(nullMe);
+	}
 	
 	@Test 
 	public void canListSingleMemberOfSocialNetworkAfterOnePersonJoining() {
@@ -70,6 +88,14 @@ public class SocialNetworkTest {
 		sn.acceptFriendshipFrom("Hakan", her);
 		assertTrue(me.hasFriend("Cecile"));
 		assertTrue(her.hasFriend("Hakan"));
+	}
+
+	@Test 
+	public void dontAcceptFriendRequestBeforeOneIsSent() {
+		Account her = sn.join("Cecile");
+		sn.acceptFriendshipFrom("Hakan", her);
+		assertFalse(me.hasFriend("Cecile"));
+		assertFalse(her.hasFriend("Hakan"));
 	}
 
 	@Test 
@@ -132,7 +158,7 @@ public class SocialNetworkTest {
 
 	@Test
 	public void testAutoAcceptAllFriendships() {
-		me.autoAcceptFriendships();
+		sn.autoAcceptFriendshipsTo(me);
 		Account Cecile = sn.join("Cecile");
 		Account Aditi = sn.join("Aditi");
 		sn.sendFriendshipTo("Hakan", Cecile);
@@ -141,6 +167,15 @@ public class SocialNetworkTest {
 		assertTrue(me.hasFriend("Aditi"));
 		assertTrue(Cecile.hasFriend("Hakan"));
 		assertTrue(Aditi.hasFriend("Hakan"));
+	}
+
+	@Test
+	public void testAutoAcceptSingleFriendship() {
+		sn.autoAcceptFriendshipsTo(me);
+		Account Cecile = sn.join("Cecile");
+		sn.sendFriendshipTo("Hakan", Cecile);
+		assertTrue(me.hasFriend("Cecile"));
+		assertTrue(Cecile.hasFriend("Hakan"));
 	}
 
 	@Test
@@ -159,5 +194,21 @@ public class SocialNetworkTest {
 		sn.leave(me);
 		assertFalse(Cecile.hasFriend("Hakan"));
 		assertFalse(Aditi.hasFriend("Hakan"));
+	}
+
+	@Test
+	public void removeMeFromSocialNetworkIncludingFromOthersOutgoingPendingRequests() {
+		Account Cecile = sn.join("Cecile");
+		sn.sendFriendshipTo("Hakan", Cecile);
+		sn.leave(me);
+		assertFalse(Cecile.getOutgoingRequests().contains("Hakan"));
+	}
+
+	@Test
+	public void removeMeFromSocialNetworkIncludingFromOthersIncomingPendingRequests() {
+		Account Cecile = sn.join("Cecile");
+		sn.sendFriendshipTo("Cecile", me);
+		sn.leave(me);
+		assertFalse(Cecile.getIncomingRequests().contains("Hakan"));
 	}
 }

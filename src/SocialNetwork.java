@@ -8,6 +8,10 @@ public class SocialNetwork {
 
 	// join SN with a new user name
 	public Account join(String userName) {
+		if (userName == null || userName == "" || listMembers().contains(userName)) {
+			return null;
+		}
+
 		Account newAccount = new Account(userName);
 		accounts.add(newAccount);
 		return newAccount;
@@ -38,7 +42,6 @@ public class SocialNetwork {
 		Account accountForUserName = findAccountForUserName(userName);
 		if (accountForUserName != null) {
 			accountForUserName.requestFriendship(me);
-			me.addOutgoingRequest(userName);
 
 			if (accountForUserName.autoAcceptFriendRequests) {
 				acceptFriendshipFrom(me.getUserName(), accountForUserName);
@@ -52,10 +55,12 @@ public class SocialNetwork {
 		me.cancelFriendship(accountForUserName);
 	}
 
-	// from my account, accept a pending friend request from another user with userName
+	// from my account, do not accept a friend request if they did not ask
 	public void acceptFriendshipFrom(String userName, Account me) {
 		Account accountForUserName = findAccountForUserName(userName);
-		accountForUserName.friendshipAccepted(me);
+		if (accountForUserName.getOutgoingRequests().contains(me.getUserName())) {
+			accountForUserName.friendshipAccepted(me);
+		}
 	}
 
 	// from my account, accept all pending friend requests
@@ -88,9 +93,19 @@ public class SocialNetwork {
 	public void leave(Account me) {
 		Collection<Account> accountsCopy = new HashSet<>(accounts);
 		for (Account account : accountsCopy) {
+			// They requested to be my friend
+			if (account.getOutgoingRequests().contains(me.getUserName())) {
+				account.friendshipAccepted(me);
+			}
+			// I requested to be their friend
+			if (account.getIncomingRequests().contains(me.getUserName())) {
+				me.friendshipAccepted(account);
+			}
+			// We are friends
 			if (me.getFriends().contains(account.getUserName())) {
 				sendFriendshipCancellationTo(account.getUserName(), me);
 			}
+			
 		}
 		accounts.remove(me);
 	}

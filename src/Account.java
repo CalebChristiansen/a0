@@ -33,8 +33,19 @@ public class Account  {
 
 	// an incoming friend request to this account's owner from another member account
 	public void requestFriendship(Account fromAccount) {
-		if (!friends.contains(fromAccount.getUserName())) {
+		if (fromAccount == null) {
+			return;
+		}
+		if (
+			!friends.contains(fromAccount.getUserName()) &&  // we are not friends
+			!getIncomingRequests().contains(fromAccount.getUserName()) &&  // incomming request does not exist
+			!fromAccount.getOutgoingRequests().contains(getUserName()) // outgoing request does not exist
+		) {
 			incomingRequests.add(fromAccount.getUserName());
+			fromAccount.addOutgoingRequest(getUserName());
+			if (autoAcceptFriendRequests) {
+				fromAccount.friendshipAccepted(this);
+			}
 		}
 	}
 
@@ -45,10 +56,13 @@ public class Account  {
 
 	// receive an acceptance from a member to whom a friend request has been sent and from whom no response has been received
 	public void friendshipAccepted(Account toAccount) {
-		friends.add(toAccount.getUserName());
-		outGoingRequests.remove(toAccount.getUserName());
-		toAccount.friends.add(this.getUserName());
-		toAccount.incomingRequests.remove(this.getUserName());
+		if (outGoingRequests.contains(toAccount.getUserName())) {
+			friends.add(toAccount.getUserName());
+			outGoingRequests.remove(toAccount.getUserName());
+			toAccount.friends.add(this.getUserName());
+			toAccount.incomingRequests.remove(this.getUserName());
+		}
+		
 	}
 
 	// receive an rejection from a member to whom a friend request has been sent and from whom no response has been received
@@ -67,7 +81,7 @@ public class Account  {
 		return friends;
 	}
 
-	// and outgoing friendship request from this user
+	// an outgoing friendship request from this user
 	public void addOutgoingRequest(String futureFriend) {
 		if (!outGoingRequests.contains(futureFriend)) {
 			outGoingRequests.add(futureFriend);

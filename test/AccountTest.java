@@ -20,6 +20,12 @@ public class AccountTest {
 		me.requestFriendship(her);
 		assertTrue(me.getIncomingRequests().contains(her.getUserName()));
 	}
+
+	@Test
+	public void updateMyOutgoingRequestsUponRequest() {
+		me.requestFriendship(her);
+		assertTrue(her.getOutgoingRequests().contains(me.getUserName()));
+	}
 	
 	@Test
 	public void noFriendRequests() {
@@ -34,12 +40,26 @@ public class AccountTest {
 		assertTrue(me.getIncomingRequests().contains(another.getUserName()));
 		assertTrue(me.getIncomingRequests().contains(her.getUserName()));
 	}
+
+	@Test
+	public void duplicateFriendRequestsHaveNoEffect() {
+		me.requestFriendship(her);
+		me.requestFriendship(her);
+		assertEquals(1, me.getIncomingRequests().size());
+		assertEquals(1, her.getOutgoingRequests().size());
+	}
 	
 	@Test
 	public void doubleFriendRequestsAreOk() {
 		me.requestFriendship(her);
 		me.requestFriendship(her);
 		assertEquals(1, me.getIncomingRequests().size());
+	}
+
+	@Test
+	public void nullFriendRequestsHaveNoEffect() {
+		me.requestFriendship(null);
+		assertEquals(0, me.getIncomingRequests().size());
 	}
 	
 	@Test
@@ -54,6 +74,14 @@ public class AccountTest {
 		me.requestFriendship(her);
 		her.friendshipRejected(me);
 		assertFalse(me.getIncomingRequests().contains(her.getUserName()));
+	}
+	
+
+	@Test
+	public void doNotAcceptFriendRequestWhenNoRequestWasMade() {
+		her.friendshipAccepted(me);
+		assertFalse(me.hasFriend(her.getUserName()));
+		assertFalse(her.hasFriend(me.getUserName()));
 	}
 	
 	@Test
@@ -89,9 +117,24 @@ public class AccountTest {
 	}
 
 	@Test
+	public void testAddDuplicateOutgoingResponse() {
+		me.addOutgoingRequest("Cecile");
+		me.addOutgoingRequest("Cecile");
+		assertEquals(1, me.getOutgoingRequests().size());
+	}
+
+	@Test
 	public void autoAcceptFriendshipsSetsCorespondingBoolean() {
 		me.autoAcceptFriendships();
 		assertTrue(me.autoAcceptFriendRequests);
+	}
+
+	@Test
+	public void autoAcceptFriendships() {
+		me.autoAcceptFriendships();
+		me.requestFriendship(her);
+		assertTrue(me.hasFriend(her.getUserName()));
+		assertTrue(her.hasFriend(me.getUserName()));
 	}
 
 	@Test
