@@ -9,14 +9,14 @@ public class AccountTest {
 	Account me, her, another;
 	
 	@Before
-	public void setUp() throws Exception {
+	public void setUp() {
 		me = new Account("Hakan");
 		her = new Account("Serra");
 		another = new Account("Cecile");
 	}
 
 	@Test
-	public void canBeFriendsWithAnother() {
+	public void updateFriendsIncomingRequestsUponMyRequest() {
 		me.requestFriendship(her);
 		assertTrue(me.getIncomingRequests().contains(her.getUserName()));
 	}
@@ -48,9 +48,16 @@ public class AccountTest {
 		her.friendshipAccepted(me);
 		assertFalse(me.getIncomingRequests().contains(her.getUserName()));
 	}
+
+	@Test
+	public void incomingRequestsUpdatedAfterRejectingFriendRequest() {
+		me.requestFriendship(her);
+		her.friendshipRejected(me);
+		assertFalse(me.getIncomingRequests().contains(her.getUserName()));
+	}
 	
 	@Test
-	public void everybodyAreFriends() {
+	public void threeWayFriendshipsWork() {
 		me.requestFriendship(her);
 		me.requestFriendship(another);
 		her.requestFriendship(another);
@@ -75,4 +82,24 @@ public class AccountTest {
 		assertFalse(her.getIncomingRequests().contains(me.getUserName()));
 	}
 
+	@Test
+	public void testAddOutgoingResponse() {
+		me.addOutgoingRequest("Cecile");
+		assertTrue(me.getOutgoingRequests().contains("Cecile"));
+	}
+
+	@Test
+	public void autoAcceptFriendshipsSetsCorespondingBoolean() {
+		me.autoAcceptFriendships();
+		assertTrue(me.autoAcceptFriendRequests);
+	}
+
+	@Test
+	public void cancelingFriendshipsRemovesFriends() {
+		me.requestFriendship(her);
+		her.friendshipAccepted(me);
+		me.cancelFriendship(her);
+		assertFalse(her.hasFriend(me.getUserName()));
+		assertFalse(me.hasFriend(her.getUserName()));
+	}
 }

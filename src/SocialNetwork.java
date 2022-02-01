@@ -1,4 +1,5 @@
 import java.util.HashSet;
+import java.util.Set;
 import java.util.Collection;
 
 public class SocialNetwork {
@@ -35,7 +36,20 @@ public class SocialNetwork {
 	// from my account, send a friend request to user with userName from my account
 	public void sendFriendshipTo(String userName, Account me) {
 		Account accountForUserName = findAccountForUserName(userName);
-		accountForUserName.requestFriendship(me);
+		if (accountForUserName != null) {
+			accountForUserName.requestFriendship(me);
+			me.addOutgoingRequest(userName);
+
+			if (accountForUserName.autoAcceptFriendRequests) {
+				acceptFriendshipFrom(me.getUserName(), accountForUserName);
+			}
+		}	
+	}
+
+	// from my account, cancel a friendship
+	public void sendFriendshipCancellationTo(String userName, Account me) {
+		Account accountForUserName = findAccountForUserName(userName);
+		me.cancelFriendship(accountForUserName);
 	}
 
 	// from my account, accept a pending friend request from another user with userName
@@ -44,4 +58,41 @@ public class SocialNetwork {
 		accountForUserName.friendshipAccepted(me);
 	}
 
+	// from my account, accept all pending friend requests
+	public void acceptAllFriendshipsTo(Account me) {
+		Set<String> incomingRequests = new HashSet<>(me.getIncomingRequests());
+		for (String friendToBe : incomingRequests) {
+			acceptFriendshipFrom(friendToBe, me);
+		}
+	}
+
+	// from my account, reject a pending friend request from another user with userName
+	public void rejectFriendshipFrom(String userName, Account me) {
+		Account accountForUserName = findAccountForUserName(userName);
+		accountForUserName.friendshipRejected(me);
+	}
+
+	// from my account, accept all pending friend requests
+	public void rejectAllFriendshipsTo(Account me) {
+		Set<String> incomingRequests = new HashSet<>(me.getIncomingRequests());
+		for (String friendNotToBe : incomingRequests) {
+			rejectFriendshipFrom(friendNotToBe, me);
+		}
+	}
+
+	public void autoAcceptFriendshipsTo(Account me) {
+		me.autoAcceptFriendships();
+	}
+
+	// Remove my account from social network:
+	public void leave(Account me) {
+		Collection<Account> accountsCopy = new HashSet<>(accounts);
+		for (Account account : accountsCopy) {
+			if (me.getFriends().contains(account.getUserName())) {
+				sendFriendshipCancellationTo(account.getUserName(), me);
+			}
+		}
+		accounts.remove(me);
+	}
+	
 }

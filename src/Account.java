@@ -12,6 +12,10 @@ public class Account  {
 	
 	// list of members who are friends of this account's owner
 	private Set<String> friends = new HashSet<String>();
+
+	private Set<String> outGoingRequests = new HashSet<String>();
+
+	public boolean autoAcceptFriendRequests = false;
 	
 	public Account(String userName) {
 		this.userName = userName;
@@ -42,12 +46,40 @@ public class Account  {
 	// receive an acceptance from a member to whom a friend request has been sent and from whom no response has been received
 	public void friendshipAccepted(Account toAccount) {
 		friends.add(toAccount.getUserName());
+		outGoingRequests.remove(toAccount.getUserName());
 		toAccount.friends.add(this.getUserName());
 		toAccount.incomingRequests.remove(this.getUserName());
+	}
+
+	// receive an rejection from a member to whom a friend request has been sent and from whom no response has been received
+	public void friendshipRejected(Account toAccount) {
+		outGoingRequests.remove(toAccount.getUserName());
+		toAccount.incomingRequests.remove(this.getUserName());
+	}
+
+	// Unfriend an existing friend
+	public void cancelFriendship(Account toAccount) {
+		friends.remove(toAccount.getUserName());
+		toAccount.friends.remove(this.getUserName());
 	}
 	
 	public Set<String> getFriends() {
 		return friends;
 	}
 
+	// and outgoing friendship request from this user
+	public void addOutgoingRequest(String futureFriend) {
+		if (!outGoingRequests.contains(futureFriend)) {
+			outGoingRequests.add(futureFriend);
+		}
+	}
+
+	// return all outgoing requests for this user
+	public Set<String> getOutgoingRequests() {
+		return outGoingRequests;
+	}
+
+	public void autoAcceptFriendships() {
+		autoAcceptFriendRequests = true;
+	}
 }
