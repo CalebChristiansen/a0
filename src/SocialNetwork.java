@@ -1,10 +1,91 @@
 import java.util.HashSet;
 import java.util.Set;
-import java.util.Collection;
 
-public class SocialNetwork {
+public class SocialNetwork implements ISocialNetwork {
 	
-	private Collection<Account> accounts = new HashSet<Account>();
+	private Set<Account> accounts = new HashSet<Account>();
+
+	private Account currentUser = null;
+
+	public Account login(Account me) {
+		currentUser = me;
+		return currentUser;
+	}
+
+	public Account getCurrentUser() throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
+		return currentUser;
+	}
+
+	public boolean hasMember(String userName) {
+		if (findAccountForUserName(userName) != null) {
+			return true;
+		}
+		return false;
+	}
+
+	public void sendFriendshipTo(String userName) {
+		sendFriendshipTo(userName, currentUser);
+	}
+
+	public void block(String userName) {
+		currentUser.blockedUsers.add(userName);
+		Account userAccount = findAccountForUserName(userName);
+		wipeMeFromSingleMembersKnowledge(userAccount, currentUser);
+	}
+
+	public void unblock(String userName) {
+		currentUser.blockedUsers.remove(userName);
+	}
+
+	public void sendFriendshipCancellationTo(String userName) {
+		sendFriendshipCancellationTo(userName, currentUser);
+	}
+
+	public void acceptFriendshipFrom(String userName) {
+		acceptFriendshipFrom(userName, currentUser);
+	}
+
+	public void acceptAllFriendships() {
+		acceptAllFriendshipsTo(currentUser);
+	}
+
+	public void rejectFriendshipFrom(String userName) {
+
+	}
+
+	public void rejectAllFriendships() {
+
+	}
+
+	public void autoAcceptFriendships() {
+
+	}
+
+	public void cancelAutoAcceptFriendships() {
+		if (currentUser != null) {
+			currentUser.autoAcceptFriendRequests = false;
+		}
+	}
+
+	public Set<String> recommendFriends() {
+		Set<String> recommendedFriends = new HashSet<>();
+		for (String member : listMembers()) {
+			Account userAccount = findAccountForUserName(member);
+			Set<String> membersFriends =  new HashSet<>(userAccount.getFriends());
+			membersFriends.retainAll(currentUser.getFriends());
+			if (membersFriends.size() > 1) {
+				recommendedFriends.add(member);
+			}
+		}
+		return recommendedFriends;
+	}
+
+	public void leave() {
+		leave(currentUser);
+	}
 
 	// join SN with a new user name
 	public Account join(String userName) {
@@ -19,6 +100,9 @@ public class SocialNetwork {
 
 	// find a member by user name 
 	private Account findAccountForUserName(String userName) {
+		if (!listMembers().contains(userName)) {  // return null if we are blocked by user
+			return null;
+		}
 		// find account with user name userName
 		// not accessible to outside because that would give a user full access to another member's account
 		for (Account each : accounts) {
@@ -29,10 +113,12 @@ public class SocialNetwork {
 	}
 	
 	// list user names of all members
-	public Collection<String> listMembers() {
-		Collection<String> members = new HashSet<String>();
+	public Set<String> listMembers() {
+		Set<String> members = new HashSet<String>();
 		for (Account each : accounts) {
-			members.add(each.getUserName());
+			if (!each.blockedUsers.contains(currentUser.getUserName())){
+				members.add(each.getUserName());
+			}
 		}
 		return members;
 	}
@@ -42,10 +128,6 @@ public class SocialNetwork {
 		Account accountForUserName = findAccountForUserName(userName);
 		if (accountForUserName != null) {
 			accountForUserName.requestFriendship(me);
-
-			if (accountForUserName.autoAcceptFriendRequests) {
-				acceptFriendshipFrom(me.getUserName(), accountForUserName);
-			}
 		}	
 	}
 
@@ -58,9 +140,7 @@ public class SocialNetwork {
 	// from my account, do not accept a friend request if they did not ask
 	public void acceptFriendshipFrom(String userName, Account me) {
 		Account accountForUserName = findAccountForUserName(userName);
-		if (accountForUserName.getOutgoingRequests().contains(me.getUserName())) {
-			accountForUserName.friendshipAccepted(me);
-		}
+		accountForUserName.friendshipAccepted(me);
 	}
 
 	// from my account, accept all pending friend requests
@@ -91,23 +171,26 @@ public class SocialNetwork {
 
 	// Remove my account from social network:
 	public void leave(Account me) {
-		Collection<Account> accountsCopy = new HashSet<>(accounts);
+		Set<Account> accountsCopy = new HashSet<>(accounts);
 		for (Account account : accountsCopy) {
-			// They requested to be my friend
-			if (account.getOutgoingRequests().contains(me.getUserName())) {
-				account.friendshipAccepted(me);
-			}
-			// I requested to be their friend
-			if (account.getIncomingRequests().contains(me.getUserName())) {
-				me.friendshipAccepted(account);
-			}
-			// We are friends
-			if (me.getFriends().contains(account.getUserName())) {
-				sendFriendshipCancellationTo(account.getUserName(), me);
-			}
-			
+			wipeMeFromSingleMembersKnowledge(account, me);
 		}
 		accounts.remove(me);
+	}
+
+	private void wipeMeFromSingleMembersKnowledge(Account user, Account me) {
+		// They requested to be my friend
+		if (user.getOutgoingRequests().contains(me.getUserName())) {
+			user.friendshipAccepted(me);
+		}
+		// I requested to be their friend
+		if (user.getIncomingRequests().contains(me.getUserName())) {
+			me.friendshipAccepted(user);
+		}
+		// We are friends
+		if (me.getFriends().contains(user.getUserName())) {
+			sendFriendshipCancellationTo(user.getUserName(), me);
+		}
 	}
 	
 }

@@ -13,6 +13,9 @@ public class Account  {
 	// list of members who are friends of this account's owner
 	private Set<String> friends = new HashSet<String>();
 
+	// list of members who are friends of this account's owner
+	public Set<String> blockedUsers = new HashSet<String>();
+
 	private Set<String> outGoingRequests = new HashSet<String>();
 
 	public boolean autoAcceptFriendRequests = false;

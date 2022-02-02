@@ -16,6 +16,12 @@ public class AccountTest {
 	}
 
 	@Test
+	public void addUserToBlockedList() {
+		me.blockedUsers.add(her.getUserName());
+		assertTrue(me.blockedUsers.contains(her.getUserName()));
+	}
+
+	@Test
 	public void updateFriendsIncomingRequestsUponMyRequest() {
 		me.requestFriendship(her);
 		assertTrue(me.getIncomingRequests().contains(her.getUserName()));
