@@ -26,51 +26,87 @@ public class SocialNetwork implements ISocialNetwork {
 		return false;
 	}
 
-	public void sendFriendshipTo(String userName) {
+	public void sendFriendshipTo(String userName)  throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
 		sendFriendshipTo(userName, currentUser);
 	}
 
-	public void block(String userName) {
+	public void block(String userName) throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
 		currentUser.blockedUsers.add(userName);
 		Account userAccount = findAccountForUserName(userName);
 		wipeMeFromSingleMembersKnowledge(userAccount, currentUser);
 	}
 
-	public void unblock(String userName) {
-		currentUser.blockedUsers.remove(userName);
+	public void unblock(String userName) throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
+		if (hasMember(userName)) {
+			currentUser.blockedUsers.remove(userName);
+		}
+		
 	}
 
-	public void sendFriendshipCancellationTo(String userName) {
+	public void sendFriendshipCancellationTo(String userName) throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
 		sendFriendshipCancellationTo(userName, currentUser);
 	}
 
-	public void acceptFriendshipFrom(String userName) {
+	public void acceptFriendshipFrom(String userName) throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
 		acceptFriendshipFrom(userName, currentUser);
 	}
 
-	public void acceptAllFriendships() {
+	public void acceptAllFriendships() throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
 		acceptAllFriendshipsTo(currentUser);
 	}
 
-	public void rejectFriendshipFrom(String userName) {
-
+	public void rejectFriendshipFrom(String userName) throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
+		rejectFriendshipFrom(userName, currentUser);
 	}
 
-	public void rejectAllFriendships() {
-
+	public void rejectAllFriendships() throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
+		rejectAllFriendshipsTo(currentUser);
 	}
 
-	public void autoAcceptFriendships() {
-
+	public void autoAcceptFriendships() throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
+		autoAcceptFriendshipsTo(currentUser);
 	}
 
-	public void cancelAutoAcceptFriendships() {
+	public void cancelAutoAcceptFriendships() throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
 		if (currentUser != null) {
 			currentUser.autoAcceptFriendRequests = false;
 		}
 	}
 
-	public Set<String> recommendFriends() {
+	public Set<String> recommendFriends() throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
 		Set<String> recommendedFriends = new HashSet<>();
 		for (String member : listMembers()) {
 			Account userAccount = findAccountForUserName(member);
@@ -83,7 +119,10 @@ public class SocialNetwork implements ISocialNetwork {
 		return recommendedFriends;
 	}
 
-	public void leave() {
+	public void leave() throws NoUserLoggedInException {
+		if (currentUser == null) {
+			throw new NoUserLoggedInException();
+		}
 		leave(currentUser);
 	}
 
